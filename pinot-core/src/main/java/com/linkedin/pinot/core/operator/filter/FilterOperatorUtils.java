@@ -25,6 +25,9 @@ import java.util.List;
 
 
 public class FilterOperatorUtils {
+
+  private static final int DEFAULT_MAX_CARDINALITY = 1000_000;
+
   private FilterOperatorUtils() {
   }
 
@@ -79,7 +82,21 @@ public class FilterOperatorUtils {
           return 3;
         }
         if (filterOperator instanceof ScanBasedFilterOperator) {
-          return 4;
+          DataSourceMetadata metadata = filterOperator.getDataSourceMetadata();
+          int basePriority = 4;
+          if (metadata == null) {
+            // shouldn't happen
+            return basePriority;
+          }
+          // lower priority for multivalue columns
+          if (! metadata.isSingleValue()) {
+            // ensure priority for multivalue cols is higher than singvalue
+            // (accounting for the cardinality for single value)
+            basePriority *= DEFAULT_MAX_CARDINALITY;
+          }
+          // lower priority for higher cardinality columns
+          return (metadata.getCardinality() > 0) ? basePriority + metadata.getCardinality() : basePriority;
+
         }
         throw new IllegalStateException(filterOperator.getClass().getSimpleName()
             + " should not be re-ordered, remove it from the list before calling this method");

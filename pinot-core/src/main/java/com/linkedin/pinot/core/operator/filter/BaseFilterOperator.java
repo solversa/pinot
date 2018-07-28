@@ -15,9 +15,11 @@
  */
 package com.linkedin.pinot.core.operator.filter;
 
+import com.linkedin.pinot.core.common.DataSource;
+import com.linkedin.pinot.core.common.DataSourceMetadata;
 import com.linkedin.pinot.core.operator.BaseOperator;
 import com.linkedin.pinot.core.operator.blocks.BaseFilterBlock;
-
+import javax.annotation.Nullable;
 
 /**
  * Base Operator for all filter operators. ResultBlock is initialized in the planning phase
@@ -25,8 +27,20 @@ import com.linkedin.pinot.core.operator.blocks.BaseFilterBlock;
  */
 public abstract class BaseFilterOperator extends BaseOperator<BaseFilterBlock> {
 
+  protected DataSource _dataSource;
+
   /**
    * Return whether the result is empty.
    */
   public abstract boolean isResultEmpty();
+
+  /**
+   * Returns the datasource metadata
+   */
+  public @Nullable DataSourceMetadata getDataSourceMetadata() {
+    if (_dataSource == null) return null;
+
+    return _dataSource.getDataSourceMetadata();
+  }
+
 }
